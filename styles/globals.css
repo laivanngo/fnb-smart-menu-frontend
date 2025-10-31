@@ -73,8 +73,18 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #eee; /* Màu nền chung */
+}
+
+/* THÊM 2 CLASS MỚI */
+.product-image.emoji-image {
   font-size: 5rem;
   background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+}
+.product-image.real-image {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .product-info {
