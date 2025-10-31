@@ -1,4 +1,4 @@
-// Tệp: fnb-smart-menu-frontend/pages/index.js (Nâng cấp "Hiển thị Ảnh thật")
+// Tệp: fnb-smart-menu-frontend/pages/index.js (Bản HOÀN CHỈNH - Đã sửa lỗi hiển thị ảnh thật)
 
 import Head from 'next/head';
 import { useState } from 'react';
@@ -6,6 +6,7 @@ import ProductModal from '../components/ProductModal';
 import CartDisplay from '../components/CartDisplay';
 
 // Lấy địa chỉ API public (dùng cho ảnh)
+// Đây là biến môi trường client-side, nó sẽ được "nướng" vào lúc build
 const publicApiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 // --- PHẦN 1: Giao diện (HTML/JSX) ---
@@ -19,7 +20,7 @@ export default function HomePage({ menuData, error }) {
         <h1>Lỗi khi tải Menu</h1>
         <p>{error}</p>
         <p>Vui lòng đảm bảo "Bộ não" (Backend) đang chạy và "Mặt tiền" (Frontend) đã được cấu hình API URL chính xác.</p>
-        <p>Nếu bạn đang chạy local, hãy đảm bảo file .env.local có `NEXT_PUBLIC_API_URL=http://127.0.0.1:8000`</p>
+        {/* <p>Lỗi: {error}</p> */}
       </div>
     );
   }
@@ -49,7 +50,7 @@ export default function HomePage({ menuData, error }) {
           return (
               <div 
                   className="product-image real-image" 
-                  style={{backgroundImage: `url(${url})`}}
+                  style={{backgroundImage: `url(${url})`}} // Dùng background-image
               ></div>
           );
       }
