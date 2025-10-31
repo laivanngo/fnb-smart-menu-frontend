@@ -589,3 +589,39 @@ body {
     cursor: not-allowed;
     color: #aaa;
 }
+
+/* Tệp: fnb-smart-menu-frontend/styles/globals.css (THÊM VÀO CUỐI) */
+
+/* === CSS cho "Hết hàng" === */
+
+.product-card.out-of-stock {
+  cursor: not-allowed;
+  position: relative; /* Cần thiết cho overlay */
+}
+
+.product-card.out-of-stock .product-image,
+.product-card.out-of-stock .product-info {
+  opacity: 0.5;
+  filter: grayscale(80%);
+}
+
+.stock-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.stock-overlay span {
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
