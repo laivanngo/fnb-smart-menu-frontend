@@ -1,12 +1,15 @@
-/* Tệp: styles/globals.css */
-/* Mục đích: CSS cơ bản cho "Mặt tiền" */
+/* Tệp: fnb-smart-menu-frontend/styles/globals.css (Bản HOÀN CHỈNH CUỐI CÙNG) */
+/* Mục đích: CSS toàn cục cho "Mặt tiền" Khách hàng */
+/* ĐÃ SỬA LỖI: Đồng nhất background cho thẻ sản phẩm */
 
+/* === 1. BIẾN MÀU SẮC & THIẾT LẬP CƠ BẢN === */
 :root {
   --primary-color: #667eea;
   --secondary-color: #ff6b6b;
   --bg-color: #f5f5f5;
   --card-bg: #ffffff;
   --text-color: #333;
+  --gradient-bg: linear-gradient(135deg, #ffeaa7, #fdcb6e);
 }
 
 * {
@@ -36,6 +39,7 @@ body {
   color: var(--primary-color);
 }
 
+/* === 2. TRANG CHỦ MENU (INDEX) === */
 .category-section {
   margin-bottom: 30px;
 }
@@ -60,6 +64,8 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  position: relative;
 }
 
 .product-card:hover {
@@ -73,18 +79,25 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #eee; /* Màu nền chung */
+  /* Nền mặc định là gradient */
+  background: var(--gradient-bg); 
+  /* Cài đặt mặc định cho ảnh thật (sẽ được inline style ghi đè) */
+  background-size: cover, auto; 
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
 }
 
-/* THÊM 2 CLASS MỚI */
 .product-image.emoji-image {
   font-size: 5rem;
-  background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+  /* Không cần background nữa, vì đã có ở trên */
 }
+
 .product-image.real-image {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  font-size: 0; /* Ẩn text lỗi nếu có */
+  /* Ảnh thật (từ style prop) sẽ tự động đè lên nền gradient */
 }
 
 .product-info {
@@ -116,10 +129,41 @@ body {
   color: var(--primary-color);
 }
 
-/* Tệp: styles/globals.css (THÊM VÀO CUỐI FILE) */
+/* --- Trạng thái "Hết hàng" --- */
+.product-card.out-of-stock {
+  cursor: not-allowed;
+}
 
-/* === CSS cho Hộp Tùy chọn (Modal) === */
+.product-card.out-of-stock .product-image,
+.product-card.out-of-stock .product-info {
+  opacity: 0.5;
+  filter: grayscale(80%);
+}
 
+.stock-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 12px;
+}
+
+.stock-overlay span {
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+
+/* === 3. HỘP TÙY CHỌN (MODAL) === */
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -143,6 +187,8 @@ body {
   overflow-y: auto;
   position: relative;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-close {
@@ -160,25 +206,35 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 10;
 }
 
+/* === SỬA LỖI TẠI ĐÂY: Đồng nhất background cho modal image === */
 .modal-image {
   width: 100%;
-  height: 150px; /* Chiều cao ảnh trong modal */
+  height: 150px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #eee; /* Màu nền chung */
+  background: var(--gradient-bg); /* Nền mặc định là gradient */
+  background-size: cover, auto;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
 }
+
 .modal-image.emoji-image {
   font-size: 5rem;
-  background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
 }
+
 .modal-image.real-image {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  font-size: 0;
+  /* Ảnh thật (từ style prop) sẽ đè lên nền gradient */
 }
+
+/* ======================================================= */
 
 .modal-title {
   font-size: 1.5rem;
@@ -196,6 +252,8 @@ body {
 
 .modal-options {
   padding: 0 20px;
+  flex-grow: 1;
+  overflow-y: auto;
 }
 
 .option-group {
@@ -225,7 +283,7 @@ body {
 }
 
 .option-name {
-  flex-grow: 1; /* Đẩy giá ra xa */
+  flex-grow: 1;
   font-size: 0.95rem;
 }
 
@@ -254,6 +312,7 @@ body {
   border-top: 1px solid #eee;
   background: #f9f9f9;
   border-radius: 0 0 12px 12px;
+  margin-top: auto;
 }
 
 .quantity-selector {
@@ -297,15 +356,8 @@ body {
   background: #5568cc;
 }
 
-/* Thêm vào .product-card để báo cho người dùng biết là bấm được */
-.product-card {
-  cursor: pointer;
-}
 
-/* Tệp: styles/globals.css (THÊM VÀO CUỐI FILE) */
-
-/* === CSS cho Giỏ hàng (Nút nổi & Hộp thoại) === */
-
+/* === 4. GIỎ HÀNG (FAB & MODAL) === */
 .cart-fab {
   position: fixed;
   bottom: 30px;
@@ -403,6 +455,7 @@ body {
 }
 .cart-item-info small em {
   color: #888;
+  font-style: italic;
 }
 
 .cart-item-controls {
@@ -455,17 +508,14 @@ body {
   cursor: pointer;
 }
 
-/* Tệp: styles/globals.css (THÊM VÀO CUỐI FILE) */
 
-/* === CSS cho Trang Thanh toán === */
-
+/* === 5. TRANG THANH TOÁN (CHECKOUT) === */
 .checkout-page form {
   display: grid;
-  grid-template-columns: 1.5fr 1fr; /* Cột trái to, cột phải nhỏ */
+  grid-template-columns: 1.5fr 1fr;
   gap: 30px;
 }
 
-/* Ẩn giỏ hàng lơ lửng khi ở trang checkout */
 .checkout-page .cart-fab {
   display: none;
 }
@@ -519,7 +569,7 @@ body {
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   padding: 20px;
-  position: sticky; /* Bám theo khi cuộn */
+  position: sticky;
   top: 20px;
   max-height: 90vh;
   display: flex;
@@ -529,7 +579,7 @@ body {
 .cart-items-list-checkout {
   overflow-y: auto;
   flex-grow: 1;
-  max-height: 300px; /* Giới hạn chiều cao */
+  max-height: 300px;
   border-bottom: 1px solid #eee;
   padding-bottom: 10px;
   margin-bottom: 15px;
@@ -548,6 +598,8 @@ body {
 
 .checkout-total {
   font-size: 0.95rem;
+  margin-top: auto;
+  padding-top: 10px;
 }
 .total-row {
   display: flex;
@@ -590,59 +642,46 @@ body {
   cursor: not-allowed;
 }
 
-/* Cho màn hình nhỏ (Mobile) */
-@media (max-width: 768px) {
-  .checkout-page form {
-    grid-template-columns: 1fr; /* Xếp 2 cột thành 1 */
-  }
-}
-
-/* === CSS cho Ô Voucher === */
 .voucher-input-group {
     display: flex;
-    margin-top: 15px; /* Khoảng cách với danh sách item */
-    margin-bottom: 15px; /* Khoảng cách với phần tổng tiền */
+    margin-top: 15px;
+    margin-bottom: 15px;
 }
-
-/* Style khi nút Áp dụng bị disabled */
 .voucher-input-group button:disabled {
-    background: #f5f5f5;
+    background: #f5f5ff;
     cursor: not-allowed;
     color: #aaa;
 }
 
-/* Tệp: fnb-smart-menu-frontend/styles/globals.css (THÊM VÀO CUỐI) */
 
-/* === CSS cho "Hết hàng" === */
+/* === 6. MEDIA QUERIES (CHO DI ĐỘNG) === */
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
 
-.product-card.out-of-stock {
-  cursor: not-allowed;
-  position: relative; /* Cần thiết cho overlay */
-}
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+  }
 
-.product-card.out-of-stock .product-image,
-.product-card.out-of-stock .product-info {
-  opacity: 0.5;
-  filter: grayscale(80%);
-}
+  .checkout-page form {
+    grid-template-columns: 1fr;
+  }
 
-.stock-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-}
+  .checkout-summary {
+    position: relative;
+    top: 0;
+  }
 
-.stock-overlay span {
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 8px 15px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 600;
+  .cart-fab {
+    bottom: 15px;
+    right: 15px;
+    padding: 12px 15px;
+  }
+
+  .modal-content, .cart-modal-content {
+    width: 100%;
+    margin: 10px;
+  }
 }

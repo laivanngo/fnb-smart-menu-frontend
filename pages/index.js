@@ -1,12 +1,10 @@
-// Tệp: fnb-smart-menu-frontend/pages/index.js (Bản HOÀN CHỈNH - Đã sửa lỗi hiển thị ảnh thật)
+// Tệp: fnb-smart-menu-frontend/pages/index.js (Bản HOÀN CHỈNH - Đã sửa lỗi "lệch" nền)
 
 import Head from 'next/head';
 import { useState } from 'react';
 import ProductModal from '../components/ProductModal';
 import CartDisplay from '../components/CartDisplay';
 
-// Lấy địa chỉ API public (dùng cho ảnh)
-// Đây là biến môi trường client-side, nó sẽ được "nướng" vào lúc build
 const publicApiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 // --- PHẦN 1: Giao diện (HTML/JSX) ---
@@ -20,41 +18,44 @@ export default function HomePage({ menuData, error }) {
         <h1>Lỗi khi tải Menu</h1>
         <p>{error}</p>
         <p>Vui lòng đảm bảo "Bộ não" (Backend) đang chạy và "Mặt tiền" (Frontend) đã được cấu hình API URL chính xác.</p>
-        {/* <p>Lỗi: {error}</p> */}
       </div>
     );
   }
 
-  // === HÀM MỚI: Quyết định URL ảnh ===
+  // === Hàm Quyết định URL ảnh ===
   const getImageUrl = (imageUrl) => {
-    if (!imageUrl) return null; // Không có ảnh
-    // Nếu là link ngoài (vd: http...) hoặc emoji (không bắt đầu bằng /)
+    if (!imageUrl) return null;
     if (imageUrl.startsWith('http') || !imageUrl.startsWith('/')) {
-        return imageUrl; // Dùng chính nó
+        return imageUrl;
     }
-    // Nếu là đường dẫn /static/...
-    // (publicApiUrl đã có http://... ở đầu)
-    return `${publicApiUrl}${imageUrl}`; // Nối với API URL công khai
+    return `${publicApiUrl}${imageUrl}`;
   };
   
-  // === HÀM MỚI: Hiển thị ảnh hoặc emoji ===
+  // === HÀM "VẼ" ẢNH (Đã sửa lỗi) ===
   const renderImage = (product) => {
       const url = getImageUrl(product.image_url);
       
-      // Nếu là emoji (ngắn và không phải link)
+      // 1. Nếu là emoji
       if (url && url.length < 5 && !url.startsWith('http')) {
+          // Class "emoji-image" SẼ CÓ NỀN VÀNG
           return <div className="product-image emoji-image">{url}</div>;
       }
-      // Nếu là link ảnh thật
+      
+      // 2. Nếu là link ảnh thật
       if (url) {
           return (
               <div 
                   className="product-image real-image" 
-                  style={{backgroundImage: `url(${url})`}} // Dùng background-image
+                  style={{
+                    // === SỬA LỖI TẠI ĐÂY ===
+                    // Chồng 2 lớp: ảnh thật LÊN TRÊN, nền vàng Ở DƯỚI
+                    backgroundImage: `url(${url}), var(--gradient-bg)`
+                  }}
               ></div>
           );
       }
-      // Fallback nếu không có gì
+      
+      // 3. Fallback (cũng có nền vàng)
       return <div className="product-image emoji-image">🥤</div>;
   };
 
@@ -71,34 +72,26 @@ export default function HomePage({ menuData, error }) {
       <main>
         {menuData.map((category) => (
           <section key={category.id} className="category-section">
-            
             <h2 className="category-title">{category.name}</h2>
-            
             <div className="products-grid">
               {category.products.map((product) => (
-                
                 <div 
                   key={product.id} 
-                  // Thêm class 'disabled' nếu hết hàng
                   className={`product-card ${product.is_out_of_stock ? 'out-of-stock' : ''}`}
-                  // Chỉ cho phép click nếu còn hàng
                   onClick={() => !product.is_out_of_stock && setSelectedProduct(product)}
                 >
-                  
-                  {/* === THÊM OVERLAY HẾT HÀNG === */}
                   {product.is_out_of_stock && (
                     <div className="stock-overlay">
                       <span>Tạm hết hàng</span>
                     </div>
                   )}
                   
-                  {/* === SỬA Ở ĐÂY: Gọi hàm renderImage === */}
+                  {/* Gọi hàm renderImage đã sửa */}
                   {renderImage(product)}
                   
                   <div className="product-info">
                     <h3 className="product-name">{product.name}</h3>
                     <p className="product-description">{product.description}</p>
-                    
                     <div className="product-footer">
                       <span className="product-price">
                         {product.base_price.toLocaleString('vi-VN')}đ
@@ -109,7 +102,6 @@ export default function HomePage({ menuData, error }) {
                 </div>
               ))}
             </div>
-
           </section>
         ))}
       </main>
@@ -127,16 +119,13 @@ export default function HomePage({ menuData, error }) {
 }
 
 // --- PHẦN 2: Lấy Dữ liệu (Logic) ---
-// (Sử dụng API_URL cho Server-side)
+// (Giữ nguyên, không thay đổi)
 export async function getServerSideProps(context) {
-  // Dùng API_URL (biến server-side) mà docker-compose cung cấp
-  const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL; // Dùng API_URL, nếu không có thì dùng NEXT_PUBLIC
-
+  const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
   if (!apiUrl) {
     console.error("LỖI: Biến môi trường API_URL hoặc NEXT_PUBLIC_API_URL chưa được cấu hình!");
     return { props: { menuData: [], error: "Lỗi cấu hình hệ thống (API URL not set)." } };
   }
-
   try {
     const res = await fetch(`${apiUrl}/menu`);
     if (!res.ok) {

@@ -1,23 +1,21 @@
 // Tệp: fnb-smart-menu-frontend/components/ProductModal.js
 // Mục đích: "Hộp Tùy chọn" (Modal)
-// ĐÃ SỬA LỖI: Thêm logic hiển thị ảnh thật
+// ĐÃ SỬA LỖI: Đồng nhất nền ảnh thật (giống index.js)
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useCart } from '../context/CartContext';
 
-// 1. Lấy địa chỉ API public (dùng cho ảnh)
 const publicApiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export default function ProductModal({ product, onClose }) {
     if (!product) return null;
 
-    // (Các state: quantity, selectedOptions, note, addToCart... giữ nguyên)
     const [quantity, setQuantity] = useState(1);
     const [selectedOptions, setSelectedOptions] = useState({});
     const [note, setNote] = useState("");
     const { addToCart } = useCart();
 
-    // (useEffect, handleOptionChange, totalPrice, handleAddToCart... giữ nguyên)
+    // (Các hàm useEffect, handleOptionChange, totalPrice, handleAddToCart... giữ nguyên)
     useEffect(() => {
         const defaults = {};
         product.options.forEach(option => {
@@ -29,15 +27,14 @@ export default function ProductModal({ product, onClose }) {
         });
         setSelectedOptions(defaults);
     }, [product]);
-
+    
     const handleOptionChange = (option, value) => {
         const optionId = option.id;
         const valueId = value.id;
         setSelectedOptions(prev => {
             const newState = { ...prev };
-            if (option.type === 'CHON_1') {
-                newState[optionId] = valueId;
-            } else {
+            if (option.type === 'CHON_1') { newState[optionId] = valueId; }
+            else {
                 const currentSelection = prev[optionId] || [];
                 if (currentSelection.includes(valueId)) {
                     newState[optionId] = currentSelection.filter(id => id !== valueId);
@@ -92,34 +89,44 @@ export default function ProductModal({ product, onClose }) {
         onClose(); 
     };
 
-    // === 2. THÊM CÁC HÀM XỬ LÝ ẢNH (Giống index.js) ===
+    // === THÊM CÁC HÀM XỬ LÝ ẢNH (Giống index.js) ===
     const getImageUrl = (imageUrl) => {
         if (!imageUrl) return null;
         if (imageUrl.startsWith('http') || !imageUrl.startsWith('/')) {
             return imageUrl;
         }
-        // Nối apiUrl (đã lấy ở đầu file)
         return `${publicApiUrl}${imageUrl}`; 
     };
 
     const renderImage = (product) => {
         const url = getImageUrl(product.image_url);
+        
+        // 1. Nếu là emoji
         if (url && url.length < 5 && !url.startsWith('http')) {
+            // Class "emoji-image" SẼ CÓ NỀN VÀNG
             return <div className="modal-image emoji-image">{url}</div>;
         }
+        
+        // 2. Nếu là link ảnh thật
         if (url) {
             return (
                 <div 
                     className="modal-image real-image" 
-                    style={{backgroundImage: `url(${url})`}}
+                    style={{
+                        // === SỬA LỖI TẠI ĐÂY ===
+                        // Chồng 2 lớp: ảnh thật LÊN TRÊN, nền vàng Ở DƯỚI
+                        backgroundImage: `url(${url}), var(--gradient-bg)`
+                    }}
                 ></div>
             );
         }
+        
+        // 3. Fallback (cũng có nền vàng)
         return <div className="modal-image emoji-image">🥤</div>;
     };
     // ===============================================
 
-    // 6. Giao diện (HTML/JSX)
+    // Giao diện (HTML/JSX)
     return (
         <div className="modal-backdrop" onClick={onClose}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -128,12 +135,10 @@ export default function ProductModal({ product, onClose }) {
                 <h2 className="modal-title">{product.name}</h2>
                 <p className="modal-description">{product.description}</p>
                 
-                {/* === 3. SỬA DÒNG NÀY === */}
+                {/* === SỬA DÒNG NÀY === */}
                 {renderImage(product)} 
-                {/* ======================= */}
-
+                
                 <div className="modal-options">
-                    {/* ... (Các tùy chọn giữ nguyên) ... */}
                     {product.options.map(option => (
                         <div key={option.id} className="option-group">
                             <h4>{option.name} {option.type === 'CHON_1' ? '(Chọn 1)' : '(Chọn nhiều)'}</h4>
@@ -161,7 +166,7 @@ export default function ProductModal({ product, onClose }) {
                     ))}
                 </div>
 
-                <div className="option-group" style={{padding: '0 20px'}}> {/* Thêm padding cho Ghi chú */}
+                <div className="option-group" style={{padding: '0 20px'}}>
                     <h4>Ghi chú</h4>
                     <textarea 
                         className="note-input"
@@ -172,7 +177,6 @@ export default function ProductModal({ product, onClose }) {
                 </div>
 
                 <div className="modal-footer">
-                    {/* ... (Footer giữ nguyên) ... */}
                     <div className="quantity-selector">
                         <button onClick={() => setQuantity(q => Math.max(1, q - 1))}>-</button>
                         <span>{quantity}</span>
@@ -182,7 +186,6 @@ export default function ProductModal({ product, onClose }) {
                         Thêm ({totalPrice.toLocaleString('vi-VN')}đ)
                     </button>
                 </div>
-
             </div>
         </div>
     );
