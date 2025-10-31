@@ -94,28 +94,47 @@ export default function HomePage({ menuData, error }) {
   );
 }
 
+
 // --- PHẦN 2: Lấy Dữ liệu (Logic) ---
-// (Giữ nguyên, không thay đổi)
-export async function getServerSideProps() {
+// (ĐÃ SỬA LỖI: Dùng đúng biến môi trường)
+export async function getServerSideProps(context) {
+  // 1. Lấy địa chỉ API từ biến môi trường
+  // === SỬA LỖI Ở ĐÂY ===
+  // getServerSideProps chạy trên server (container), 
+  // nên nó phải dùng biến API_URL (nội bộ, vd: http://backend:8000)
+  const apiUrl = process.env.API_URL;
+  // ====================
+
+  if (!apiUrl) {
+    console.error("LỖI: Biến môi trường API_URL (cho server-side) chưa được cấu hình!");
+    return { props: { menuData: [], error: "Lỗi cấu hình hệ thống (API_URL not set)." } };
+  }
+
   try {
-    const res = await fetch('http://127.0.0.1:8000/menu');
+    // 2. Gọi API /menu bằng địa chỉ apiUrl
+    const res = await fetch(`${apiUrl}/menu`);
 
     if (!res.ok) {
-      throw new Error(`Kết nối "Bộ não" thất bại! (Status: ${res.status})`);
+      throw new Error(`Kết nối "Bộ não" thất bại! (Status: ${res.status}) - URL: ${apiUrl}/menu`);
     }
+
     const menuData = await res.json();
+
+    // 3. Gửi dữ liệu này lên "Phần Giao diện"
     return {
       props: {
         menuData: menuData,
         error: null,
       },
     };
+
   } catch (err) {
     console.error("Lỗi khi gọi API /menu:", err.message);
+    // Trả về lỗi để component HomePage có thể hiển thị
     return {
       props: {
         menuData: [],
-        error: err.message,
+        error: err.message, // Gửi thông báo lỗi
       },
     };
   }
