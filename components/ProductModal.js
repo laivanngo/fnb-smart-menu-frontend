@@ -1,5 +1,6 @@
-// Tệp: components/ProductModal.js (ĐÃ SỬA LỖI LOGIC LẦN CUỐI)
-// Mục đích: Đồng bộ với "Bộ não" (Backend) - Tìm "CHON_1"
+// Tệp: fnb-smart-menu-frontend/components/ProductModal.js
+// Mục đích: "Hộp Tùy chọn" (Modal)
+// ĐÃ SỬA LỖI: e.g.value -> e.target.value
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useCart } from '../context/CartContext';
@@ -16,14 +17,9 @@ export default function ProductModal({ product, onClose }) {
     useEffect(() => {
         const defaults = {};
         product.options.forEach(option => {
-            
-            // === SỬA LỖI LOGIC Ở ĐÂY ===
-            // So sánh với "CHON_1" (giá trị thực tế từ API)
             if (option.type === 'CHON_1' && option.values.length > 0) {
-                // Tự động chọn giá trị đầu tiên (Vd: Size M, 50% đường)
                 defaults[option.id] = option.values[0].id; 
             } else {
-                // Với "chọn nhiều" (Topping), ban đầu là 1 mảng rỗng
                 defaults[option.id] = [];
             }
         });
@@ -37,13 +33,9 @@ export default function ProductModal({ product, onClose }) {
 
         setSelectedOptions(prev => {
             const newState = { ...prev };
-
-            // === SỬA LỖI LOGIC Ở ĐÂY ===
             if (option.type === 'CHON_1') {
-                // Nếu là "chọn 1" (Radio), chỉ cần gán giá trị
                 newState[optionId] = valueId;
             } else {
-                // Nếu là "chọn nhiều" (Checkbox)
                 const currentSelection = prev[optionId] || [];
                 if (currentSelection.includes(valueId)) {
                     newState[optionId] = currentSelection.filter(id => id !== valueId);
@@ -58,26 +50,21 @@ export default function ProductModal({ product, onClose }) {
     // 4. Hàm "thần kỳ" để tính toán tổng giá
     const totalPrice = useMemo(() => {
         let itemPrice = product.base_price; 
-
         Object.keys(selectedOptions).forEach(optionId => {
             const selected = selectedOptions[optionId];
-            
             const optionGroup = product.options.find(o => o.id == optionId);
             if (!optionGroup) return;
             
             if (Array.isArray(selected)) {
-                // "chọn nhiều" (Topping)
                 selected.forEach(valueId => {
                     const value = optionGroup.values.find(v => v.id == valueId);
                     if (value) itemPrice += value.price_adjustment;
                 });
             } else {
-                // "chọn 1" (Size, Đường)
                 const value = optionGroup.values.find(v => v.id == selected);
                 if (value) itemPrice += value.price_adjustment;
             }
         });
-        
         return itemPrice * quantity;
     }, [product, selectedOptions, quantity]);
 
@@ -89,13 +76,12 @@ export default function ProductModal({ product, onClose }) {
         let optionsDisplay = [];
         product.options.forEach(option => {
             const selected = selectedOptions[option.id];
-            
-            if (Array.isArray(selected) && selected.length > 0) { // Topping
+            if (Array.isArray(selected) && selected.length > 0) {
                 selected.forEach(valueId => {
                     const value = option.values.find(v => v.id == valueId);
                     if(value) optionsDisplay.push(value.name);
                 });
-            } else if (!Array.isArray(selected) && selected) { // Size, Đường... (thêm check 'selected')
+            } else if (!Array.isArray(selected) && selected) {
                 const value = option.values.find(v => v.id == selected);
                 if(value) optionsDisplay.push(value.name);
             }
@@ -104,7 +90,7 @@ export default function ProductModal({ product, onClose }) {
         const cartItem = {
             product_id: product.id,
             quantity: quantity,
-            note: note,
+            note: note, // Gửi "note" từ state
             options: allOptionValueIds, 
             _display: {
                 name: product.name,
@@ -131,15 +117,10 @@ export default function ProductModal({ product, onClose }) {
                 <div className="modal-options">
                     {product.options.map(option => (
                         <div key={option.id} className="option-group">
-                            
-                            {/* === SỬA LỖI LOGIC Ở ĐÂY === */}
                             <h4>{option.name} {option.type === 'CHON_1' ? '(Chọn 1)' : '(Chọn nhiều)'}</h4>
-                            
                             {option.values.map(value => (
                                 <div key={value.id} className="option-item">
                                     <label>
-                                        
-                                        {/* === SỬA LỖI LOGIC Ở ĐÂY === */}
                                         <input
                                             type={option.type === 'CHON_1' ? 'radio' : 'checkbox'}
                                             name={`option-${option.id}`}
@@ -167,7 +148,8 @@ export default function ProductModal({ product, onClose }) {
                         className="note-input"
                         placeholder="Vd: Ít đá, nhiều đường..."
                         value={note}
-                        onChange={(e) => setNote(e.g.value)}
+                        // === SỬA LỖI TẠI ĐÂY ===
+                        onChange={(e) => setNote(e.target.value)} // Sửa "e.g.value" thành "e.target.value"
                     />
                 </div>
 
