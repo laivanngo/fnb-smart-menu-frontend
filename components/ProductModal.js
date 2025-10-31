@@ -114,8 +114,8 @@ export default function ProductModal({ product, onClose }) {
                     className="modal-image real-image" 
                     style={{
                         // === SỬA LỖI TẠI ĐÂY ===
-                        // Chồng 2 lớp: ảnh thật LÊN TRÊN, nền vàng Ở DƯỚI
-                        backgroundImage: `url(${url}), var(--gradient-bg)`
+                        // Chỉ chèn ảnh thật, nền sẽ được CSS lo
+                        backgroundImage: `url(${url})`
                     }}
                 ></div>
             );
