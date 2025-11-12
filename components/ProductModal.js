@@ -1,6 +1,6 @@
 // Tệp: fnb-smart-menu-frontend/components/ProductModal.js
-// Mục đích: "Hộp Tùy chọn" (Modal)
-// ĐÃ SỬA LỖI: Đồng nhất nền ảnh thật (giống index.js)
+// MỤC ĐÍCH: "Hộp Tùy chọn" (Modal)
+// (BẢN VÁ 1.5 - ĐÃ NÂNG CẤP TỒN KHO TOPPING)
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useCart } from '../context/CartContext';
@@ -15,25 +15,39 @@ export default function ProductModal({ product, onClose }) {
     const [note, setNote] = useState("");
     const { addToCart } = useCart();
 
-    // (Các hàm useEffect, handleOptionChange, totalPrice, handleAddToCart... giữ nguyên)
+    // === NÂNG CẤP LOGIC CHỌN MẶC ĐỊNH ===
+    // Tự động chọn topping CÒN HÀNG đầu tiên cho nhóm "Chọn 1"
     useEffect(() => {
         const defaults = {};
         product.options.forEach(option => {
             if (option.type === 'CHON_1' && option.values.length > 0) {
-                defaults[option.id] = option.values[0].id; 
+                // Tìm value đầu tiên CÒN HÀNG
+                const firstAvailableValue = option.values.find(v => !v.is_out_of_stock);
+                
+                if (firstAvailableValue) {
+                    defaults[option.id] = firstAvailableValue.id; 
+                } else {
+                    defaults[option.id] = null; // Tất cả đều hết hàng
+                }
             } else {
-                defaults[option.id] = [];
+                defaults[option.id] = []; // Nhóm "Chọn nhiều"
             }
         });
         setSelectedOptions(defaults);
     }, [product]);
+    // ===================================
     
     const handleOptionChange = (option, value) => {
+        // Không cho phép chọn nếu đã hết hàng
+        if (value.is_out_of_stock) return;
+
         const optionId = option.id;
         const valueId = value.id;
         setSelectedOptions(prev => {
             const newState = { ...prev };
-            if (option.type === 'CHON_1') { newState[optionId] = valueId; }
+            if (option.type === 'CHON_1') { 
+                newState[optionId] = valueId; 
+            }
             else {
                 const currentSelection = prev[optionId] || [];
                 if (currentSelection.includes(valueId)) {
@@ -46,6 +60,7 @@ export default function ProductModal({ product, onClose }) {
         });
     };
 
+    // (totalPrice, getImageUrl, renderImage, handleAddToCart giữ nguyên)
     const totalPrice = useMemo(() => {
         let itemPrice = product.base_price; 
         Object.keys(selectedOptions).forEach(optionId => {
@@ -89,7 +104,6 @@ export default function ProductModal({ product, onClose }) {
         onClose(); 
     };
 
-    // === THÊM CÁC HÀM XỬ LÝ ẢNH (Giống index.js) ===
     const getImageUrl = (imageUrl) => {
         if (!imageUrl) return null;
         if (imageUrl.startsWith('http') || !imageUrl.startsWith('/')) {
@@ -100,28 +114,17 @@ export default function ProductModal({ product, onClose }) {
 
     const renderImage = (product) => {
         const url = getImageUrl(product.image_url);
-        
-        // 1. Nếu là emoji
         if (url && url.length < 5 && !url.startsWith('http')) {
-            // Class "emoji-image" SẼ CÓ NỀN VÀNG
             return <div className="modal-image emoji-image">{url}</div>;
         }
-        
-        // 2. Nếu là link ảnh thật
         if (url) {
             return (
                 <div 
                     className="modal-image real-image" 
-                    style={{
-                        // === SỬA LỖI TẠI ĐÂY ===
-                        // Chỉ chèn ảnh thật, nền sẽ được CSS lo
-                        backgroundImage: `url(${url})`
-                    }}
+                    style={{ backgroundImage: `url(${url})` }}
                 ></div>
             );
         }
-        
-        // 3. Fallback (cũng có nền vàng)
         return <div className="modal-image emoji-image">🥤</div>;
     };
     // ===============================================
@@ -135,15 +138,16 @@ export default function ProductModal({ product, onClose }) {
                 <h2 className="modal-title">{product.name}</h2>
                 <p className="modal-description">{product.description}</p>
                 
-                {/* === SỬA DÒNG NÀY === */}
                 {renderImage(product)} 
                 
                 <div className="modal-options">
                     {product.options.map(option => (
                         <div key={option.id} className="option-group">
                             <h4>{option.name} {option.type === 'CHON_1' ? '(Chọn 1)' : '(Chọn nhiều)'}</h4>
+                            
+                            {/* === NÂNG CẤP GIAO DIỆN TOPPING === */}
                             {option.values.map(value => (
-                                <div key={value.id} className="option-item">
+                                <div key={value.id} className={`option-item ${value.is_out_of_stock ? 'disabled' : ''}`}>
                                     <label>
                                         <input
                                             type={option.type === 'CHON_1' ? 'radio' : 'checkbox'}
@@ -154,14 +158,23 @@ export default function ProductModal({ product, onClose }) {
                                                     : selectedOptions[option.id]?.includes(value.id)
                                             }
                                             onChange={() => handleOptionChange(option, value)}
+                                            disabled={value.is_out_of_stock} // 1. VÔ HIỆU HÓA NÚT
                                         />
                                         <span className="option-name">{value.name}</span>
-                                        <span className="option-price">
-                                            +{value.price_adjustment.toLocaleString('vi-VN')}đ
-                                        </span>
+                                        
+                                        {/* 2. HIỂN THỊ (TẠM HẾT) HOẶC GIÁ */}
+                                        {value.is_out_of_stock ? (
+                                            <span className="option-price out-of-stock-label">(Tạm hết)</span>
+                                        ) : (
+                                            <span className="option-price">
+                                                +{value.price_adjustment.toLocaleString('vi-VN')}đ
+                                            </span>
+                                        )}
                                     </label>
                                 </div>
                             ))}
+                            {/* === KẾT THÚC NÂNG CẤP === */}
+
                         </div>
                     ))}
                 </div>
